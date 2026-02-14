@@ -5,7 +5,7 @@ export async function getDirections(
   destination: string,
   departureTime: string
 ) {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  const apiKey = process.env.MODE2_GOOGLE_MAPS_API_KEY;
 
   const departureTimestamp = Math.floor(
     new Date(departureTime).getTime() / 1000
