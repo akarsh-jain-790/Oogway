@@ -1,4 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Oogway — City Intelligence for People on the Move
+
+Most apps help you navigate a city. **Oogway** helps you choose where to live and how to live there.
+
+A city intelligence app for people moving to a new place, with two main modes:
+
+- **Choose a Place to Live** — workplace, frequent places, preferences (commute, food, quiet vs nightlife, etc.)
+- **Plan a Place to Go** — destination, time, best routes with traffic and festival awareness
+
+## Mapbox Integration
+
+This app uses [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/) for interactive 3D maps.
+
+### Setup
+
+1. Get a free Mapbox access token from [account.mapbox.com/access-tokens](https://account.mapbox.com/access-tokens/).
+2. Copy `.env.example` to `.env.local`:
+   ```bash
+   cp .env.example .env.local
+   ```
+3. Add your token to `.env.local`:
+   ```
+   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=pk.your_actual_token_here
+   ```
+
+### Features
+
+- **3D terrain** — Buildings and elevation with adjustable exaggeration
+- **Geocoding** — Search for any place from the landing page
+- **Preferences panel** — Tune commute priority, food convenience, quiet vs nightlife, and more
 
 ## Getting Started
 
