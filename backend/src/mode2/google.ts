@@ -36,6 +36,9 @@ export async function getDirections(
     duration_minutes: leg.duration.value / 60,
     duration_in_traffic_minutes: leg.duration_in_traffic
       ? leg.duration_in_traffic.value / 60
-      : leg.duration.value / 60
+      : leg.duration.value / 60,
+    destination_lat: leg.end_location.lat,
+    destination_lng: leg.end_location.lng
   };
+
 }

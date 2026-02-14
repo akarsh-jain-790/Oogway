@@ -1,5 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+/**
+ * ===== RISK ANALYSIS =====
+ */
 export async function analyzeRisk(input: {
   origin: string;
   destination: string;
@@ -8,7 +11,9 @@ export async function analyzeRisk(input: {
   departure_time: string;
 }) {
   try {
-    const genAI = new GoogleGenerativeAI(process.env.MODE2_GEMINI_API_KEY!);
+    const genAI = new GoogleGenerativeAI(
+      process.env.MODE2_GEMINI_API_KEY!
+    );
 
     const model = genAI.getGenerativeModel({
       model: "gemini-2.0-flash"
@@ -63,5 +68,77 @@ Use positive number if user can leave later.
       reasoning: "AI analysis failed. Using fallback logic.",
       recommended_departure_adjustment_minutes: 0
     });
+  }
+}
+
+
+/**
+ * ===== AGENTIC TRANSPORT DECISION =====
+ */
+export async function generateModeDecision(input: {
+  traffic_level: string;
+  delay: number;
+  cab_cost: number;
+  bus_cost: number;
+  temperature: number | null;
+  isRaining: boolean;
+}) {
+  try {
+    const genAI = new GoogleGenerativeAI(
+      process.env.MODE2_GEMINI_API_KEY!
+    );
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash"
+    });
+
+    const prompt = `
+You are a mobility optimization decision agent.
+
+Live Conditions:
+- Traffic Level: ${input.traffic_level}
+- Traffic Delay: ${input.delay} minutes
+- Cab Cost: ₹${input.cab_cost}
+- Bus Cost: ₹${input.bus_cost}
+- Temperature: ${input.temperature}
+- Rain Present: ${input.isRaining}
+
+Your job:
+Choose the most optimal transport mode based on:
+- Cost efficiency
+- Travel time stability
+- Weather impact
+- Congestion level
+
+Respond ONLY in valid JSON format.
+Do NOT include markdown.
+
+Format:
+
+{
+  "recommended_mode": "Cab | Bus",
+  "reasoning": "Short explanation of why this mode is optimal.",
+  "confidence_score": number (0-1),
+  "decision_factors": ["factor1", "factor2", "factor3"]
+}
+`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    const cleaned = text
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    return JSON.parse(cleaned);
+
+  } catch (error: any) {
+    return {
+      recommended_mode: "Cab",
+      reasoning: "Fallback decision due to AI evaluation error.",
+      confidence_score: 0.5,
+      decision_factors: ["Fallback mode"]
+    };
   }
 }
