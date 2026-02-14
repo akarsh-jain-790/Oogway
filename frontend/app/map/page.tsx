@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { MapboxMap } from "@/components/MapboxMap";
 import {
   MapPreferences,
@@ -13,10 +13,11 @@ import {
 } from "@/components/MapPreferences";
 import { MapResults } from "@/components/MapResults";
 import { getCityAreas } from "@/lib/defaultAreas";
+import { analyzeTrip, discoverZones, Mode1Response, Mode2Response, Anchor, UserPreferences } from "@/lib/api";
 
 function getInitialPurpose(mode: string | null): Purpose {
-  if (mode === "go") return "frequently_visited";
-  return "place_to_stay"; // "live" or default
+  if (mode === "go") return "frequently_visited"; // Corresponds to Mode 2 (Live/Trip)
+  return "place_to_stay"; // Corresponds to Mode 1 (Plan/Live Here)
 }
 
 function MapContent() {
@@ -27,6 +28,81 @@ function MapContent() {
     ...DEFAULT_PREFERENCES,
     purpose: getInitialPurpose(mode),
   }));
+
+  const [mode1Results, setMode1Results] = useState<Mode1Response | null>(null);
+  const [mode2Results, setMode2Results] = useState<Mode2Response | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // --- DATA FETCHING LOGIC ---
+  useEffect(() => {
+    async function fetchData() {
+      if (!searchQuery) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setMode1Results(null);
+      setMode2Results(null);
+
+      try {
+        if (mode === 'live' || mode === 'go') {
+          // MODE 2: TRIP ANALYSIS
+          const origin = "Indiranagar, Bangalore"; // Hardcoded for now as per current requirements
+          const destination = searchQuery;
+
+          // Only call if we have valid strings
+          if (origin && destination) {
+            const data = await analyzeTrip(origin, destination, new Date().toISOString());
+            setMode2Results(data);
+          }
+        } else {
+          // MODE 1: ZONE DISCOVERY (Plan/Live Here)
+
+          // 1. Try to find lat/lng from our default areas to capture the user's intent better
+          const foundArea = areas.find(a =>
+            a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            searchQuery.toLowerCase().includes(a.name.toLowerCase())
+          );
+
+          // 2. Construct Anchor
+          // If foundArea exists, use its center. 
+          // If not, use a default Bangalore center (12.9716, 77.5946) as a fallback 
+          // so the backend can still attempt to find something near "Bangalore" if that's the search.
+          const latitude = foundArea ? foundArea.center[1] : 12.9716;
+          const longitude = foundArea ? foundArea.center[0] : 77.5946;
+
+          const anchor: Anchor = {
+            type: "Work", // Default type
+            name: searchQuery,
+            latitude,
+            longitude,
+          };
+
+          const apiPrefs: UserPreferences = {
+            commutePriority: preferences.commutePriority === 'high' ? 8 : preferences.commutePriority === 'medium' ? 5 : 2,
+            deliveryImportance: preferences.foodConvenience === 'high' ? 9 : preferences.foodConvenience === 'medium' ? 5 : 2,
+            quietVsNightlife: preferences.quietVsNightlife === 'high' ? 8 : preferences.quietVsNightlife === 'medium' ? 5 : 2,
+            festivalTolerance: preferences.festivalTolerance === 'high' ? 8 : preferences.festivalTolerance === 'medium' ? 5 : 2,
+            schoolsImportance: preferences.schoolsHospitals === 'high' ? 9 : preferences.schoolsHospitals === 'medium' ? 5 : 2,
+            hospitalsImportance: preferences.schoolsHospitals === 'high' ? 9 : preferences.schoolsHospitals === 'medium' ? 5 : 2,
+            culturalProximity: 5
+          };
+
+          const data = await discoverZones([anchor], apiPrefs);
+          setMode1Results(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch map data", error);
+        // Optional: Set some error state to show in UI
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [searchQuery, mode, preferences, areas]); // Added areas to dep array safely
+
 
   const areas = useMemo(() => getCityAreas(searchQuery), [searchQuery]);
   const areaOptions: AreaOption[] = useMemo(
@@ -55,7 +131,7 @@ function MapContent() {
           Oogway
         </Link>
         <h1 className="text-lg font-semibold text-zinc-900">
-          {mode === "go" ? "Go Here" : "Live Here"}
+          {(mode === "go" || mode === "live") ? "Go Here (Live Trip)" : "Live Here (Plan)"}
         </h1>
         <div className="w-20" />
       </header>
@@ -75,7 +151,13 @@ function MapContent() {
 
       <section className="shrink-0 border-t border-zinc-200 bg-zinc-50 px-4 py-6 text-zinc-900">
         <div className="mx-auto max-w-4xl">
-          <MapResults preferences={preferences} areas={areas} />
+          <MapResults
+            preferences={preferences}
+            areas={areas}
+            mode1Results={mode1Results}
+            mode2Results={mode2Results}
+            loading={loading}
+          />
         </div>
       </section>
     </div>
