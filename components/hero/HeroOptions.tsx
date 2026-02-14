@@ -4,19 +4,30 @@ import { motion } from "framer-motion";
 import { ArrowRight, Navigation, Home as HomeIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+interface SelectedPlace {
+  properties: { name?: string; city?: string; state?: string; country?: string };
+}
+
 interface HeroOptionsProps {
-    selectedPlace: any;
+  selectedPlace: SelectedPlace | null;
 }
 
 export const HeroOptions = ({ selectedPlace }: HeroOptionsProps) => {
-    const router = useRouter();
+  const router = useRouter();
 
-    const handleOptionClick = (mode: "live" | "plan") => {
-        if (selectedPlace) {
-            sessionStorage.setItem("selectedPlace", JSON.stringify(selectedPlace));
-            router.push(`/${mode}`);
-        }
-    };
+  const handleOptionClick = (mode: "live" | "go") => {
+    if (selectedPlace) {
+      sessionStorage.setItem("selectedPlace", JSON.stringify(selectedPlace));
+      const props = selectedPlace.properties;
+      const search = [props.name, props.city, props.state, props.country]
+        .filter(Boolean)
+        .join(", ");
+      const params = new URLSearchParams();
+      if (search?.trim()) params.set("search", search.trim());
+      params.set("mode", mode);
+      router.push(`/map?${params.toString()}`);
+    }
+  };
 
     return (
         <motion.div
@@ -44,7 +55,7 @@ export const HeroOptions = ({ selectedPlace }: HeroOptionsProps) => {
             </div>
 
             <div
-                onClick={() => handleOptionClick("plan")}
+                onClick={() => handleOptionClick("go")}
                 className="group w-full bg-white/10 backdrop-blur-md hover:bg-orange-50/20 border-2 border-orange-200 hover:border-orange-500 rounded-full p-4 px-8 transition-all duration-300 flex flex-col md:flex-row items-center md:justify-between cursor-pointer gap-4"
             >
                 <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4">

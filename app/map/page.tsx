@@ -9,14 +9,24 @@ import {
   DEFAULT_PREFERENCES,
   type Preferences,
   type AreaOption,
+  type Purpose,
 } from "@/components/MapPreferences";
 import { MapResults } from "@/components/MapResults";
 import { getCityAreas } from "@/lib/defaultAreas";
 
+function getInitialPurpose(mode: string | null): Purpose {
+  if (mode === "go") return "frequently_visited";
+  return "place_to_stay"; // "live" or default
+}
+
 function MapContent() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") || undefined;
-  const [preferences, setPreferences] = useState<Preferences>(DEFAULT_PREFERENCES);
+  const mode = searchParams.get("mode");
+  const [preferences, setPreferences] = useState<Preferences>(() => ({
+    ...DEFAULT_PREFERENCES,
+    purpose: getInitialPurpose(mode),
+  }));
 
   const areas = useMemo(() => getCityAreas(searchQuery), [searchQuery]);
   const areaOptions: AreaOption[] = useMemo(
@@ -45,7 +55,7 @@ function MapContent() {
           Oogway
         </Link>
         <h1 className="text-lg font-semibold text-zinc-900">
-          Map Dashboard
+          {mode === "go" ? "Go Here" : "Live Here"}
         </h1>
         <div className="w-20" />
       </header>
