@@ -33,6 +33,14 @@ function MapContent() {
   const [mode2Results, setMode2Results] = useState<Mode2Response | null>(null);
   const [loading, setLoading] = useState(false);
 
+
+
+  const areas = useMemo(() => getCityAreas(searchQuery), [searchQuery]);
+  const areaOptions: AreaOption[] = useMemo(
+    () => areas.map((a) => ({ id: a.id, name: a.name })),
+    [areas]
+  );
+
   // --- DATA FETCHING LOGIC ---
   useEffect(() => {
     async function fetchData() {
@@ -103,12 +111,6 @@ function MapContent() {
     fetchData();
   }, [searchQuery, mode, preferences, areas]); // Added areas to dep array safely
 
-
-  const areas = useMemo(() => getCityAreas(searchQuery), [searchQuery]);
-  const areaOptions: AreaOption[] = useMemo(
-    () => areas.map((a) => ({ id: a.id, name: a.name })),
-    [areas]
-  );
 
   return (
     <div data-page="map" className="flex min-h-screen flex-col overflow-y-auto bg-white text-zinc-900">
