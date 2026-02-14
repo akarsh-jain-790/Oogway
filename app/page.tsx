@@ -23,7 +23,9 @@ interface PhotonFeature {
 
 export default function Home() {
   const [step, setStep] = useState<"input" | "selection">("input");
-  const [selectedPlace, setSelectedPlace] = useState<PhotonFeature | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<PhotonFeature | null>(
+    null,
+  );
 
   const handleNext = () => {
     if (selectedPlace) {
@@ -37,12 +39,10 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-white text-black font-sans selection:bg-black selection:text-white overflow-hidden p-6 relative">
-
       <HeroBackground />
       <HeroHeader step={step} />
 
       <div className="w-full max-w-3xl relative z-10 mt-20">
-
         <HeroSearch
           onLocationSelect={setSelectedPlace}
           onNext={handleNext}
@@ -55,7 +55,6 @@ export default function Home() {
             <HeroOptions selectedPlace={selectedPlace} />
           )}
         </AnimatePresence>
-
       </div>
     </main>
   );
