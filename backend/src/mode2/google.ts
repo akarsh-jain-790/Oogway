@@ -5,7 +5,7 @@ export async function getDirections(
   destination: string,
   departureTime: string
 ) {
-  const apiKey = process.env.MODE2_GOOGLE_MAPS_API_KEY;
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
   const departureTimestamp = Math.floor(
     new Date(departureTime).getTime() / 1000
@@ -26,7 +26,10 @@ export async function getDirections(
   const data = response.data;
 
   if (!data.routes.length) {
-    throw new Error("No routes found");
+    console.error("Google Maps API Error: No routes found.");
+    console.error("API Response Status:", data.status);
+    console.error("API Error Message:", data.error_message);
+    throw new Error(`No routes found (Status: ${data.status})`);
   }
 
   const leg = data.routes[0].legs[0];

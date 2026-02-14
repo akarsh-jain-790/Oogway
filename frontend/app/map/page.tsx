@@ -24,6 +24,8 @@ function MapContent() {
   const searchParams = useSearchParams();
   const searchQuery = searchParams.get("search") || undefined;
   const mode = searchParams.get("mode");
+  const originQuery = searchParams.get("origin"); // Get origin from URL
+
   const [preferences, setPreferences] = useState<Preferences>(() => ({
     ...DEFAULT_PREFERENCES,
     purpose: getInitialPurpose(mode),
@@ -32,8 +34,6 @@ function MapContent() {
   const [mode1Results, setMode1Results] = useState<Mode1Response | null>(null);
   const [mode2Results, setMode2Results] = useState<Mode2Response | null>(null);
   const [loading, setLoading] = useState(false);
-
-
 
   const areas = useMemo(() => getCityAreas(searchQuery), [searchQuery]);
   const areaOptions: AreaOption[] = useMemo(
@@ -56,7 +56,7 @@ function MapContent() {
       try {
         if (mode === 'live' || mode === 'go') {
           // MODE 2: TRIP ANALYSIS
-          const origin = "Indiranagar, Bangalore"; // Hardcoded for now as per current requirements
+          const origin = originQuery || "Bangalore"; // Default to Bangalore if no origin
           const destination = searchQuery;
 
           // Only call if we have valid strings
@@ -74,14 +74,11 @@ function MapContent() {
           );
 
           // 2. Construct Anchor
-          // If foundArea exists, use its center. 
-          // If not, use a default Bangalore center (12.9716, 77.5946) as a fallback 
-          // so the backend can still attempt to find something near "Bangalore" if that's the search.
           const latitude = foundArea ? foundArea.center[1] : 12.9716;
           const longitude = foundArea ? foundArea.center[0] : 77.5946;
 
           const anchor: Anchor = {
-            type: "Work", // Default type
+            type: "Work", // Keep default type for now, or infer/ask user later
             name: searchQuery,
             latitude,
             longitude,
@@ -94,7 +91,7 @@ function MapContent() {
             festivalTolerance: preferences.festivalTolerance === 'high' ? 8 : preferences.festivalTolerance === 'medium' ? 5 : 2,
             schoolsImportance: preferences.schoolsHospitals === 'high' ? 9 : preferences.schoolsHospitals === 'medium' ? 5 : 2,
             hospitalsImportance: preferences.schoolsHospitals === 'high' ? 9 : preferences.schoolsHospitals === 'medium' ? 5 : 2,
-            culturalProximity: 5
+            culturalProximity: 5 // Default value
           };
 
           const data = await discoverZones([anchor], apiPrefs);
@@ -109,7 +106,7 @@ function MapContent() {
     }
 
     fetchData();
-  }, [searchQuery, mode, preferences, areas]); // Added areas to dep array safely
+  }, [searchQuery, mode, originQuery, preferences, areas]);
 
 
   return (
