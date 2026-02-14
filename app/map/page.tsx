@@ -25,11 +25,11 @@ function MapContent() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col overflow-y-auto bg-white">
-      <header className="flex shrink-0 items-center justify-between border-b border-border bg-white px-4 py-3">
+    <div data-page="map" className="flex min-h-screen flex-col overflow-y-auto bg-white text-zinc-900">
+      <header className="flex shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-4 py-3">
         <Link
           href="/"
-          className="flex items-center gap-2 text-primary hover:opacity-80"
+          className="flex items-center gap-2 text-zinc-900 hover:opacity-80"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -44,7 +44,7 @@ function MapContent() {
           </svg>
           Oogway
         </Link>
-        <h1 className="text-lg font-semibold text-foreground">
+        <h1 className="text-lg font-semibold text-zinc-900">
           Map Dashboard
         </h1>
         <div className="w-20" />
@@ -54,7 +54,7 @@ function MapContent() {
         <div className="flex-1 p-4">
           <MapboxMap searchQuery={searchQuery} />
         </div>
-        <aside className="w-80 shrink-0 overflow-y-auto border-l border-border bg-white p-4">
+        <aside className="w-80 shrink-0 overflow-y-auto border-l border-zinc-200 bg-white p-4 text-zinc-900">
           <MapPreferences
             preferences={preferences}
             onChange={setPreferences}
@@ -63,7 +63,7 @@ function MapContent() {
         </aside>
       </div>
 
-      <section className="shrink-0 border-t border-border bg-muted/30 px-4 py-6">
+      <section className="shrink-0 border-t border-zinc-200 bg-zinc-50 px-4 py-6 text-zinc-900">
         <div className="mx-auto max-w-4xl">
           <MapResults preferences={preferences} areas={areas} />
         </div>
